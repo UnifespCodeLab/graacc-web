@@ -1,117 +1,117 @@
 <template>
-  <v-layout class="h-100 d-flex justify-center align-center">
-    <div class="glow">
-      <div class="glow-effect l top-0" />
-      <div class="glow-effect r t" />
-      <div class="glow-effect l bottom-0" />
-      <div class="glow-effect r bottom-0" />
-    </div>
-    <v-progress-circular v-if="loading" indeterminate />
-    <v-container v-else class="d-flex ga-2 flex-column justify-center">
-      <v-snackbar v-model="alert" location="top end" color="error">
-        {{ alert_message }}
-      </v-snackbar>
-      <img
-        src="/assets/images/agendinha_logo.png"
-        class="align-self-center mb-4">
-      <div class="titles text-center">
-        <h2 class="font-weight-bold">Vamos começar?</h2>
-        <h3 class="mb-6">Crie a sua conta</h3>
-      </div>
+  <v-container class="d-flex ga-2 flex-column">
+    <v-app-bar>
+      <template #prepend>
+        <v-app-bar-nav-icon>
+          <NuxtLink
+            href="/login">
+            <v-icon 
+            style="background-color: #D7F2FF;"
+            class="pa-4 rounded-xl"
+            color="blue-dark" 
+            icon="mdi-chevron-left"/>
+          </NuxtLink>
+        </v-app-bar-nav-icon>
+        <v-app-bar-title
+          class="font-weight-bold ml-2">Criar conta</v-app-bar-title>
+      </template>
+    </v-app-bar>
+    <v-main>
+      <p class="font-weight-bold text-h6 mb-3">Insira seus dados</p>
       <section>
-        <div class="d-flex">
-          <v-text-field v-model="user.nome" label="Nome" class="mr-2"/>
-          <v-text-field v-model="user.sobrenome" label="Sobrenome" class="ml-2"/>
-        </div>
-        <v-text-field v-model="user.email" label="E-mail" />
+        <v-text-field 
+          v-model="user.nomeResponsavel" 
+          prepend-inner-icon="mdi-account-outline"
+          label="Nome do(a) responsável" 
+          />
+        <v-text-field 
+          v-model="user.id_paciente" 
+          prepend-inner-icon="mdi-card-account-details-outline"
+          label="ID do(a) paciente" 
+          />
+        <v-text-field 
+          v-model="user.email" 
+          prepend-inner-icon="mdi-email-outline"
+          label="E-mail"
+          />
         <v-text-field
           v-model="user.senha"
+          prepend-inner-icon="mdi-form-textbox-password"
           label="Senha"
           :type="show ? 'text' : 'password'"
           :append-inner-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
           @click:append-inner="show = !show"
         />
       </section>
-      <v-btn @click="register()">Criar conta</v-btn>
+      <v-btn class="w-100" @click="register()">Criar conta</v-btn>
       <div class="text-center mt-6">
         <p>Já tem uma conta?</p>
-        <a href="/login" class="font-weight-bold mb-6 text-blue-dark">
+        <NuxtLink 
+        href="/login" class="font-weight-bold mb-6 text-blue-dark">
           Faça login aqui.
-        </a>
+        </NuxtLink>
       </div>
-    </v-container>
-  </v-layout>
+    </v-main>
+  </v-container>
 </template>
 
-<style scoped>
-img { width: 200px; }
-
-a {
-  color: #007aff;
-  text-decoration: none;
-}
-</style>
-
 <script lang="ts">
+import { useLoaderStore } from "~/store/loader";
 import createUser from "~/utils/api/register/createUser";
+import type UserRegister from "~/interfaces/userRegister";
 
 export default defineComponent({
   name: "Registro",
   data() {
     return {
       user: {
-        nome: "",
-        sobrenome: "",
+        nomeResponsavel: "",
+        id_paciente: null,
         email: "",
         senha: "",
       },
       show: false,
-      alert: false,
-      alert_message: "",
+      loader: useLoaderStore(),
+      toast: useNuxtApp().$toast as any,
     };
   },
   methods: {
     async register() {
+      this.loader.startLoading();
+
       const testEmail =
         /^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
       if (!testEmail.test(this.user.email)) {
-        this.alert = true;
-        this.alert_message = "E-mail inválido";
+        this.toast.error("E-mail inválido.");
+        this.loader.endLoading();
+        return;
+      }
+
+      const testId = /^\d$/;
+      if (!testId.test(`${this.user.id_paciente}`)) {
+        this.toast.error("ID inválido.");
+        this.loader.endLoading();
         return;
       }
 
       if (this.user.senha.length <= 0) {
-        this.alert = true;
-        this.alert_message = "Senha vazia";
+        this.toast.error("Senha inválida.");
+        this.loader.endLoading();
         return;
       }
 
-      if (this.user.senha != this.confirme_senha) {
-        this.alert = true;
-        this.alert_message = "Senhas estão diferentes";
-        return;
-      }
+      const userRequest: UserRegister = {
+        nome: this.user.nomeResponsavel,
+        email: this.user.email,
+        senha: this.user.senha,
+        id_paciente: Number(this.user.id_paciente),
+      };
 
-      try {
-        const userRequest = {
-          nome: this.user.nome,
-          email: this.user.email,
-          senha: this.user.senha,
-          nomeCompletoPaciente: `${this.user.nome} ${this.user.sobrenome}`,
-        };
-        await createUser(this.userRequest);
-        this.$router.push("/login");
-      } catch (error) {
-        this.alert = true;
-        console.error(error.response);
-        if (
-          error.response._data == "Não existe nenhum paciente com esse nome"
-        ) {
-          this.alert_message = "Erro: paciente não existe.";
-          return;
-        }
-        this.alert_message = "Erro ao realizar cadastro.";
-      }
+      const response = await createUser(userRequest);
+      if(response.status == 200) this.$router.push("/login");
+      else this.toast.error("Erro ao fazer o cadastro.");
+
+      this.loader.endLoading();
     },
   },
 });

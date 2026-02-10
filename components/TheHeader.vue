@@ -1,68 +1,71 @@
 <template>
-  <v-layout>
-    <v-container
-      class="fix-header pa-0 position-fixed bottom-0 bg-white d-flex justify-center"
-    >
-      <v-tabs v-model="currentTab" @click="$emit('changedTab', currentTab)">
-        <v-tab value="exams"> 
-          <div class="custom-tab">
-            <v-icon size="24" icon="mdi-home" />
-            <p>Início</p>
-          </div>
-        </v-tab>
-        <v-tab value="contacts">
-          <div class="custom-tab">
-            <v-icon icon="mdi-phone" size="24" />
-            <p>Contatos</p>
-          </div>
-        </v-tab>
-        <v-tab value="notifications">
-          <div class="custom-tab">
-            <v-icon
-              :icon="totalNotifications > 0 ? 'mdi-bell-ring' : 'mdi-bell'"
-              size="24"
-            />
-						<span class="number-indicator" v-if="totalNotifications > 9">+9</span>
-						<span class="number-indicator" 
-						v-if="totalNotifications > 0 && totalNotifications < 9">
-							{{ totalNotifications }}
-						</span>
-            <p>Notificações</p>
-          </div>
-        </v-tab>
-        <v-tab value="profile">
-          <div class="custom-tab">
-            <v-icon icon="mdi-account" size="24" />
-            <p>Perfil</p>
-          </div>
-        </v-tab>
-      </v-tabs>
-    </v-container>
-  </v-layout>
+  <v-container class="fix-header pa-0 position-fixed bottom-0 bg-white d-flex justify-center">
+    <v-tabs v-model="currentTab" @click="changePage">
+      <v-tab value="/">
+        <div class="custom-tab">
+          <v-icon size="24" icon="mdi-home-outline" />
+          <p>Início</p>
+        </div>
+      </v-tab>
+      <v-tab value="/contatos">
+        <div class="custom-tab">
+          <v-icon icon="mdi-phone-outline" size="24" />
+          <p>Contatos</p>
+        </div>
+      </v-tab>
+      <v-tab value="/notificacoes">
+        <div class="custom-tab">
+          <v-icon
+            :icon="totalNotifications > 0 ? 'mdi-bell-ring-outline' : 'mdi-bell-outline'"
+            size="24"
+          />
+          <span 
+            v-if="totalNotifications > 9"
+            class="number-indicator"
+            >+9</span
+          >
+          <span
+            v-if="totalNotifications > 0 && totalNotifications < 9"
+            class="number-indicator"
+          >
+            {{ totalNotifications }}
+          </span>
+          <p>Notificações</p>
+        </div>
+      </v-tab>
+      <v-tab value="/perfil">
+        <div class="custom-tab">
+          <v-icon icon="mdi-account-outline" size="24" />
+          <p>Perfil</p>
+        </div>
+      </v-tab>
+    </v-tabs>
+  </v-container>
 </template>
 
 <script lang="ts">
-import type Notification from "~/interfaces/notification";
-import getUserNotifications from "~/utils/api/notifications/getUserNotifications";
+import { useAuthStore } from "~/store/auth";
 
 export default defineComponent({
   name: "TheHeader",
-  props: {
-    tab: { type: String, required: true },
-  },
   data() {
     return {
+      auth: useAuthStore(),
       totalNotifications: ref(0),
-      currentTab: ref(this.tab),
+      currentTab: ref('/'),
     };
   },
-  async mounted() {
-    const notifications = await getUserNotifications();
-    const notReadNotifications: Notification[] = notifications.filter(
-      (notification) => !notification.lida
-    );
-		this.totalNotifications = notReadNotifications.length;
-  }
+  mounted() {
+    const { notReadNotifications, page } = this.auth;
+    this.totalNotifications = notReadNotifications;
+    this.currentTab = page;
+  },
+  methods: {
+    changePage() {
+      this.auth.updatePage(this.currentTab);
+      this.$router.push(this.currentTab ?? '/');
+    },
+  },
 });
 </script>
 
@@ -80,11 +83,11 @@ export default defineComponent({
   position: absolute;
   right: 11px;
   top: 6px;
-	background-color: #A30052;
-	padding: 2px 5px;
-	border-radius: 20px;
+  background-color: #a30052;
+  padding: 2px 5px;
+  border-radius: 20px;
   color: #fff;
-	z-index: 2;
+  z-index: 2;
 }
 
 @media (max-width: 450px) {
