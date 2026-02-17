@@ -93,6 +93,7 @@ export default defineComponent({
 
       if (this.authenticated && status == 200) {
         this.$router.push("/");
+        await Notification.requestPermission();
         return;
       }
 

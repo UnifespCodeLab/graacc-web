@@ -105,6 +105,8 @@ export default defineComponent({
         if (response.status == 200) {
           this.toast.success("Senha alterada com sucesso.");
           this.$router.push("/perfil");
+          this.loader.endLoading();
+          return;
         }
 
         this.toast.error("Erro ao alterar senha.");
