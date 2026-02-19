@@ -110,8 +110,9 @@ export default defineComponent({
         }
 
         this.toast.error("Erro ao alterar senha.");
-      } catch(err) {
+      } catch(err: any) {
         this.toast.error("Erro ao alterar senha.");
+        console.error(err);
       }
       this.loader.endLoading();
     },

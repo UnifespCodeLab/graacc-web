@@ -37,7 +37,7 @@
       >
       <v-btn @click="login()">Entrar</v-btn>
       <p class="text-center">ou</p>
-      <v-btn color="black" width="250" class="align-self-center" variant="outlined">
+      <v-btn color="black" width="250" class="align-self-center" variant="outlined" @click="loginWithGoogle">
         <Icon class="mr-4" name="icons:google-logo" size="30" />
         Entrar com o Google
       </v-btn>
@@ -54,7 +54,7 @@
 <script lang="ts">
 import { useAuthStore } from "~/store/auth";
 import { useLoaderStore } from "~/store/loader";
-import getResponseOAuth2 from "~/utils/google/getResponseOAuth2";
+import loginWithOAuth2 from "~/utils/google/loginWithOAuth2";
 
 export default defineComponent({
   name: "Login",
@@ -72,11 +72,8 @@ export default defineComponent({
     };
   },
   methods: {
-    loginWithGoogle() {
-      getResponseOAuth2(async (token: string, email: string) => {
-        console.log(token, email);
-        if (!this.authenticated) return;
-      });
+    loginWithGoogle() { 
+      loginWithOAuth2();
     },
     async login() {
       this.loader.startLoading();
@@ -87,6 +84,12 @@ export default defineComponent({
         this.toast.error("E-mail inválido.");
         this.loader.endLoading();
         return;
+      }
+
+      if(this.user.senha.length <= 0) {
+        this.toast.error("Senha inválida.");
+        this.loader.endLoading();
+        return;        
       }
 
       const status = await this.auth.authenticateUser(this.user);
