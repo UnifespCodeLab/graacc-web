@@ -73,7 +73,10 @@ export default defineComponent({
   },
   methods: {
     loginWithGoogle() { 
-      loginWithOAuth2();
+      loginWithOAuth2((status: number) => {
+        if(status == 200)
+          this.$router.push("/completar-informacoes");
+      });
     },
     async login() {
       this.loader.startLoading();

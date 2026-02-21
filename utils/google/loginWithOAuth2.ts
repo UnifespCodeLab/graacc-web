@@ -1,7 +1,7 @@
 import { googleSdkLoaded } from "vue3-google-login";
 import type UserGoogleAuth from "~/interfaces/userGoogleAuth";
 
-export default function loginWithOAuth2() {
+export default function loginWithOAuth2(endRequest: Function) {
   const config = useRuntimeConfig();
   const { $api } = useNuxtApp();
 
@@ -10,6 +10,8 @@ export default function loginWithOAuth2() {
       client_id: config.public.googleClientId,
       scope: 'email profile openid',
       callback: async (response: any) => {
+        let responseCode = 400;
+
         const tokens: any = await $fetch(
           "https://oauth2.googleapis.com/token",
           {
@@ -24,7 +26,10 @@ export default function loginWithOAuth2() {
           },
         );
         
-        if(!tokens.access_token || !tokens.id_token) return;
+        if(!tokens.access_token || !tokens.id_token) {
+          responseCode = 400;
+          endRequest(responseCode);
+        }
 
         const info: any = await $fetch(
           "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -35,7 +40,10 @@ export default function loginWithOAuth2() {
           },
         );
 
-        if(!info.email) return;
+        if(!info.email) {
+          responseCode = 400;
+          endRequest(responseCode);
+        }
         
         const auth: UserGoogleAuth = {
           token: tokens.id_token as string,
@@ -46,7 +54,10 @@ export default function loginWithOAuth2() {
           method: "POST",
           body: auth,
         });
+
+        responseCode = login.status;
+        endRequest(responseCode);
       }
-    }).requestCode()
-  })
+    }).requestCode();
+  });
 }
