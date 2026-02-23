@@ -28,7 +28,8 @@ export default function loginWithOAuth2(endRequest: Function) {
         
         if(!tokens.access_token || !tokens.id_token) {
           responseCode = 400;
-          endRequest(responseCode);
+          endRequest(responseCode, {});
+          return;
         }
 
         const info: any = await $fetch(
@@ -42,7 +43,8 @@ export default function loginWithOAuth2(endRequest: Function) {
 
         if(!info.email) {
           responseCode = 400;
-          endRequest(responseCode);
+          endRequest(responseCode, {});
+          return;
         }
         
         const auth: UserGoogleAuth = {
@@ -56,7 +58,7 @@ export default function loginWithOAuth2(endRequest: Function) {
         });
 
         responseCode = login.status;
-        endRequest(responseCode);
+        endRequest(responseCode, login.data);
       }
     }).requestCode();
   });

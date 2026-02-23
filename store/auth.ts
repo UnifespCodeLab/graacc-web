@@ -6,6 +6,7 @@ import type Notification from "~/interfaces/notification";
 import getUserInfo from "~/utils/api/user/getUserInfo";
 import getPatientById from "~/utils/api/patient/getPatientById";
 import getUserNotifications from "~/utils/api/notifications/getUserNotifications";
+import loginWithOAuth2 from "~/utils/google/loginWithOAuth2";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -37,7 +38,7 @@ export const useAuthStore = defineStore("auth", {
 
         this.notReadNotifications = notReadNotifications.length;
       } catch(error: any) {
-        console.log(error.status);
+        console.error(error.status);
         return error.status;
       }
       return 200;
@@ -60,6 +61,24 @@ export const useAuthStore = defineStore("auth", {
       }
       
       return response.status;
+    },
+    async authenticateUserGoogle(callback: Function) {     
+      loginWithOAuth2(async (status: number, data: any) => {
+        if(status != 200) {
+          callback(status);
+          return;
+        }
+
+        const token = useCookie("token");
+        token.value = data.token;
+        this.user.nome = data.nome;
+
+        if(!data.cadastro_confirmado) callback(status, data.cadastro_confirmado);
+        else {
+          const userInfoStatus: number = await this.refreshAuth();
+          callback(userInfoStatus, data.novo_usuario);
+        }
+      });
     },
     updatePage(page: string) {
       this.page = page;

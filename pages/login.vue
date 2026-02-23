@@ -35,7 +35,7 @@
         <NuxtLink href="/pedido-alteracao-senha" class="font-weight-bold mb-4 text-blue-dark"
         >Esqueci minha senha</NuxtLink
       >
-      <v-btn @click="login()">Entrar</v-btn>
+      <v-btn @click="login">Entrar</v-btn>
       <p class="text-center">ou</p>
       <v-btn color="black" width="250" class="align-self-center" variant="outlined" @click="loginWithGoogle">
         <Icon class="mr-4" name="icons:google-logo" size="30" />
@@ -54,7 +54,6 @@
 <script lang="ts">
 import { useAuthStore } from "~/store/auth";
 import { useLoaderStore } from "~/store/loader";
-import loginWithOAuth2 from "~/utils/google/loginWithOAuth2";
 
 export default defineComponent({
   name: "Login",
@@ -72,11 +71,20 @@ export default defineComponent({
     };
   },
   methods: {
-    loginWithGoogle() { 
-      loginWithOAuth2((status: number) => {
-        if(status == 200)
-          this.$router.push("/completar-informacoes");
-      });
+    loginWithGoogle() {
+      this.loader.startLoading();
+      this.auth.authenticateUserGoogle(
+        (status: number, confirmUser: boolean) => {
+          if(status != 200) {
+            this.toast.error("Erro ao fazer login.");
+            this.loader.endLoading();
+            return;
+          }
+
+          this.$router.push(confirmUser ? "/" : "/completar-informacoes");
+          this.loader.endLoading();
+        }
+      );
     },
     async login() {
       this.loader.startLoading();
