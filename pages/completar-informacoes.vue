@@ -30,7 +30,7 @@ import updateUserInfo from "~/utils/api/user/updateUserInfo";
 import type UserUpdate from "~/interfaces/userUpdate";
 import getPatientById from "~/utils/api/patient/getPatientById";
 import { useLoaderStore } from "~/store/loader";
-import confirmAccount from "~/utils/api/user/confirmAccount";
+import confirmAccount from "~/utils/api/register/confirmAccount";
 
 const auth = useAuthStore();
 const loader = useLoaderStore();
