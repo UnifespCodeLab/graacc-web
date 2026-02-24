@@ -113,7 +113,17 @@ export default defineComponent({
 
       if (status == 401 || status == 400) {
         this.toast.error("E-mail/senha não encontrado.");
-      } else this.toast.error("Erro ao fazer login.");
+        this.loader.endLoading();
+        return;
+      }
+
+      if(status == 403) {
+        this.toast.error("Conta não confirmada.");
+        this.loader.endLoading();
+        return;
+      }
+      
+      this.toast.error("Erro ao fazer login.");
       this.loader.endLoading();
     },
   },
