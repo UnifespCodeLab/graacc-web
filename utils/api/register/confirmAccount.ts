@@ -1,13 +1,9 @@
-export default async function confirmAccount(email: string) {
+export default async function confirmAccount(id_usuario: number) {
   const { $api } = useNuxtApp();
-  const token = useCookie("token");
 
   const response = await $api("/usuarios/confirmar", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token.value}`,
-    },
-    body: { email }
+    body: { id_usuario }
   });
 
   return response;
