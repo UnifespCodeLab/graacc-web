@@ -6,11 +6,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if(token.value) {
     const auth = useAuthStore();
     auth.updatePage(to?.path);
-    await auth.refreshAuth();
+    const response = await auth.refreshAuth();
+    if(response.status != 200) {
+      abortNavigation();
+      return navigateTo("/login");
+    }
   }
 
   if (!token.value && to?.name !== "login") {
     abortNavigation();
-    return navigateTo("/login");
+    const firstTime = useCookie("firsttime");
+    if(firstTime.value == "false") return navigateTo("/login");
+    return navigateTo("/boas-vindas");
   }
 });
