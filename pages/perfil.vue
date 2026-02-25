@@ -35,10 +35,12 @@
           text="Desconectar"
           prepend-icon="mdi-exit-to-app"
           to="/login"
-          @click="logUserOut()"
+          @click="logUserOut"
         />
       </section>
-      <p class="text-primary mb-14">Excluir Conta</p>
+      <p class="text-primary mb-14 cursor-pointer" @click="requestDelete">
+        Excluir Conta
+      </p>
     </v-main>
   </v-container>
 </template>
@@ -46,6 +48,7 @@
 <script lang="ts" setup>
 import { useAuthStore } from "~/store/auth";
 import { storeToRefs } from "pinia";
+import deleteAccount from "~/utils/api/user/deleteAccount";
 const config = useRuntimeConfig();
 
 definePageMeta({ middleware: "auth", showHeader: true });
@@ -61,6 +64,11 @@ profileImageURL.value = user.value.foto_perfil ?
 
 function logUserOut(): void {
   auth.logUserOut();
+}
+
+async function requestDelete() {
+  const response = await deleteAccount(user.value.id_usuario);
+  
 }
 </script>
 
