@@ -9,6 +9,11 @@
       </template>
     </v-app-bar>
     <v-main class="text-center d-flex h-100 justify-space-between flex-column">
+      <delete-account 
+        :show="showDelete"
+        :user-id="user.id_usuario"
+        @close="requestDelete"
+      />
       <section class="d-flex flex-column ga-4">
         <client-only>
           <profile-image :id="user.id_usuario" :main-image="profileImageURL" :size="100" />
@@ -48,8 +53,8 @@
 <script lang="ts" setup>
 import { useAuthStore } from "~/store/auth";
 import { storeToRefs } from "pinia";
-import deleteAccount from "~/utils/api/user/deleteAccount";
 const config = useRuntimeConfig();
+const showDelete = ref(false);
 
 definePageMeta({ middleware: "auth", showHeader: true });
 const auth = useAuthStore();
@@ -66,9 +71,8 @@ function logUserOut(): void {
   auth.logUserOut();
 }
 
-async function requestDelete() {
-  const response = await deleteAccount(user.value.id_usuario);
-  
+function requestDelete(): void {
+  showDelete.value = !showDelete.value;
 }
 </script>
 
