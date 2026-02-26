@@ -84,9 +84,6 @@ export const useAuthStore = defineStore("auth", {
         }
       });
     },
-    updatePage(page: string) {
-      this.page = page;
-    },
     logUserOut() {
       const token = useCookie("token");
       this.authenticated = false;
