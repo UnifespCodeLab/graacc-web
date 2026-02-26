@@ -5,7 +5,8 @@
     >
         <v-card class="rounded-xl">
             <template v-slot:append>
-                <v-avatar color="#BCD4FF" size="35">
+                <v-avatar @click="$emit('close');" 
+                color="#BCD4FF" size="35" class="cursor-pointer">
                     <v-icon 
                         color="#0C3784"
                         class="pa-2"
@@ -44,4 +45,5 @@
 <script lang="ts" setup>
 import type ShowNotification from "~/interfaces/showNotification";
 const props = defineProps<ShowNotification>();
+
 </script>
