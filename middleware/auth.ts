@@ -1,16 +1,14 @@
 import { useAuthStore } from "~/store/auth";
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  const auth = useAuthStore();
   const token = useCookie("token");
-
+  
   if(token.value) {
-    const auth = useAuthStore();
-    auth.updatePage(to?.path);
-    const response = await auth.refreshAuth();
-    if(response.status != 200) {
-      abortNavigation();
-      return navigateTo("/login");
-    }
+    const { authenticated } = storeToRefs(auth);
+    authenticated.value = true;
+
+    auth.refreshAuth();
   }
 
   if (!token.value && to?.name !== "login") {

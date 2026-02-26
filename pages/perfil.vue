@@ -9,6 +9,11 @@
       </template>
     </v-app-bar>
     <v-main class="text-center d-flex h-100 justify-space-between flex-column">
+      <delete-account 
+        :show="showDelete"
+        :user-id="user.id_usuario"
+        @close="requestDelete"
+      />
       <section class="d-flex flex-column ga-4">
         <client-only>
           <profile-image :id="user.id_usuario" :main-image="profileImageURL" :size="100" />
@@ -35,10 +40,12 @@
           text="Desconectar"
           prepend-icon="mdi-exit-to-app"
           to="/login"
-          @click="logUserOut()"
+          @click="logUserOut"
         />
       </section>
-      <p class="text-primary mb-14">Excluir Conta</p>
+      <p class="text-primary mb-14 cursor-pointer" @click="requestDelete">
+        Excluir Conta
+      </p>
     </v-main>
   </v-container>
 </template>
@@ -47,6 +54,7 @@
 import { useAuthStore } from "~/store/auth";
 import { storeToRefs } from "pinia";
 const config = useRuntimeConfig();
+const showDelete = ref(false);
 
 definePageMeta({ middleware: "auth", showHeader: true });
 const auth = useAuthStore();
@@ -61,6 +69,10 @@ profileImageURL.value = user.value.foto_perfil ?
 
 function logUserOut(): void {
   auth.logUserOut();
+}
+
+function requestDelete(): void {
+  showDelete.value = !showDelete.value;
 }
 </script>
 

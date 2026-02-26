@@ -54,6 +54,7 @@
 <script lang="ts">
 import { useAuthStore } from "~/store/auth";
 import { useLoaderStore } from "~/store/loader";
+import { validateEmail } from '~/utils/others/validate';
 
 export default defineComponent({
   name: "Login",
@@ -89,9 +90,7 @@ export default defineComponent({
     async login() {
       this.loader.startLoading();
 
-      const testEmail =
-        /^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-      if (!testEmail.test(this.user.email)) {
+      if (!validateEmail(this.user.email)) {
         this.toast.error("E-mail inválido.");
         this.loader.endLoading();
         return;
