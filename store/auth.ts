@@ -1,40 +1,38 @@
 import type UserToken from "~/interfaces/userToken";
 import type UserAuth from "~/interfaces/userAuth";
 import type User from "~/interfaces/user";
-import type Patient from "~/interfaces/patient";
 import type Notification from "~/interfaces/notification";
 import type GoogleTokens from "~/interfaces/googleTokens";
 import getUserInfo from "~/utils/api/user/getUserInfo";
 import loginWithOAuth2 from "~/utils/google/loginWithOAuth2";
+import { useLoaderStore } from "./loader";
+
 type Callback = (status: number, confirmRegister: boolean) => void;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: {} as User,
-    patient: {} as Patient,
     authenticated: false,
     notifications: [] as Notification[],
     notReadNotifications: 0, 
     page: '/',
-    googleTokens: {} as GoogleTokens
+    googleTokens: {} as GoogleTokens,
   }),
   actions: {
     async refreshAuth() {
+      const loader = useLoaderStore();
       try {
-        const userInfo = await getUserInfo();
-        if(userInfo.status != 200) return { status: userInfo.status };
+        loader.startLoading();
 
-        if(!userInfo.data.cadastro_confirmado) return { status: 403 };
+        const info: any = await getUserInfo();
+        if(info.status != 200) return { status: info.status };
 
-        const data = userInfo.data;
+        const data = info.data;
+        if(!data.usuario.cadastro_confirmado) return { status: 403 };
 
-        this.patient = data.paciente;
         this.notifications = data.notificacoes;
+        this.user = data.usuario;
 
-        delete data.paciente;
-        delete data.notificacoes;
-
-        this.user = data;
         this.authenticated = true;
 
         const notReadNotifications: Notification[] = this.notifications.filter(
@@ -44,8 +42,10 @@ export const useAuthStore = defineStore("auth", {
         this.notReadNotifications = notReadNotifications.length;
       } catch(error: any) {
         console.error(error.status);
+        loader.endLoading();
         return { status: error.status };
       }
+      loader.endLoading();
       return { status: 200 };
     },
     async authenticateUser(user_auth: UserAuth) {
@@ -62,7 +62,6 @@ export const useAuthStore = defineStore("auth", {
         token.value = data.token;
         
         this.user = data.usuario;
-        this.patient = data.paciente;
         this.notifications = data.notificacoes;
       }
       
@@ -83,7 +82,6 @@ export const useAuthStore = defineStore("auth", {
         
         if(!this.user.cadastro_confirmado) callback(status, false);
         else {
-          this.patient = data.patient;
           this.notifications = data.notificacoes;
           callback(status, true);
         }
